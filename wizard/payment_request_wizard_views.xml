@@ -1,0 +1,54 @@
+<odoo>
+    <record id="view_payment_request_wizard_form" model="ir.ui.view">
+        <field name="name">payment.request.wizard.form</field>
+        <field name="model">payment.request.wizard</field>
+        <field name="arch" type="xml">
+
+            <form string="Payment Request">
+
+                <!-- Hidden fields (optional future use) -->
+                <field name="currency_id" invisible="1"/>
+
+                <group>
+                    <!-- LEFT SIDE -->
+                    <group name="group1">
+                        <field name="group_request"/>
+                    </group>
+
+                    <!-- RIGHT SIDE -->
+                    <group name="group2">
+
+                        <!-- Amount + Currency (like Odoo style) -->
+                        <label for="total_amount"/>
+                        <div class="o_row">
+                            <field name="total_amount" readonly="1"/>
+                            <field name="currency_id"
+                                   readonly="1"
+                                   groups="base.group_multi_currency"/>
+                        </div>
+
+                        <!-- Payment Date -->
+                        <field name="payment_date"/>
+
+                    </group>
+                </group>
+
+                <!-- Footer like Odoo -->
+                <footer>
+                    <button name="action_confirm"
+                            string="Confirm Request"
+                            type="object"
+                            class="oe_highlight"
+                            data-hotkey="q"/>
+
+                    <button string="Discard"
+                            special="cancel"
+                            class="btn-secondary"
+                            data-hotkey="x"/>
+                </footer>
+
+            </form>
+
+        </field>
+    </record>
+</odoo>

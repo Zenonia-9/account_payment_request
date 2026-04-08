@@ -1,0 +1,42 @@
+<odoo>
+    <template id="report_payment_request_document">
+        <t t-call="web.external_layout">
+
+            <main class="page">
+
+                <h2>Payment Request</h2>
+
+                <t t-if="data">
+                    <p>
+                        <strong>Payment Date:</strong>
+                        <span t-esc="data.get('payment_date')"/>
+                    </p>
+                </t>
+
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Bill</th>
+                            <th>Vendor</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="docs" t-as="doc">
+                            <tr>
+                                <td><span t-field="doc.name"/></td>
+                                <td><span t-field="doc.partner_id.name"/></td>
+                                <td class="text-end">
+                                    <span t-field="doc.amount_total"
+                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+
+            </main>
+
+        </t>
+    </template>
+</odoo>
