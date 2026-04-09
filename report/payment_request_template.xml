@@ -1,42 +1,108 @@
 <odoo>
     <template id="report_payment_request_document">
-        <t t-call="web.external_layout">
+        <t t-call="web.html_container">
+            <t t-set="is_grouped" t-value="data.get('group_request')"/>
+            <t t-set="iterations" t-value="[docs] if is_grouped else docs"/>
 
-            <main class="page">
+            <t t-foreach="iterations" t-as="group">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center mb-4">
+                            <h3><strong>Payment Request Form</strong></h3>
+                        </div>
 
-                <h2>Payment Request</h2>
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Supplier No :</strong> <span t-field="docs[0].partner_id.ref"/><br/>
+                                <strong>Supplier Name :</strong> <span t-field="docs[0].partner_id.name"/>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong>Vr.No:</strong> 
+                                <t t-if="is_grouped">MULTI-PR</t>
+                                <t t-else=""><span t-field="group.name"/></t><br/>
+                                
+                                <strong>Vr Date:</strong> 
+                                <span t-esc="data.get('payment_date')" t-options='{"widget": "date"}'/><br/>
+                                
+                                <strong>Currency:</strong> <span t-field="docs[0].currency_id.name"/>
+                            </div>
+                        </div>
 
-                <t t-if="data">
-                    <p>
-                        <strong>Payment Date:</strong>
-                        <span t-esc="data.get('payment_date')"/>
-                    </p>
+                        <table class="table table-sm table-bordered border-dark">
+                            <thead class="text-center align-middle bg-light">
+                                <tr>
+                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 35%;">Description</th>
+                                    <th style="width: 15%;">GRN No.</th>
+                                    <th style="width: 15%;">Profit Center</th>
+                                    <th style="width: 15%;">Discount</th>
+                                    <th style="width: 15%;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="i" t-value="1"/>
+                                <t t-set="lines" t-value="group.mapped('invoice_line_ids').filtered(lambda l: l.display_type not in ('line_section', 'line_note'))"/>
+                                <t t-foreach="lines" t-as="line">
+                                    <tr>
+                                        <td class="text-center"><span t-esc="i"/></td>
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-center">
+                                            <span t-field="line.purchase_line_id.order_id.name"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line.analytic_distribution and list(line.analytic_distribution.keys())[0] or ''"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="line.discount" t-options='{"widget": "monetary", "display_currency": docs[0].currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": docs[0].currency_id}'/>
+                                        </td>
+                                    </tr>
+                                    <t t-set="i" t-value="i+1"/>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5" class="text-center fw-bold">Total Amount</td>
+                                    <td class="text-end fw-bold">
+                                        <t t-if="is_grouped">
+                                            <span t-esc="sum(docs.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": docs[0].currency_id}'/>
+                                        </t>
+                                        <t t-else="">
+                                            <span t-field="group.amount_total" t-options='{"widget": "monetary", "display_currency": group.currency_id}'/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <div class="row mt-5 pt-4 text-center" style="page-break-inside: avoid;">
+                            <div class="col-3">
+                                <strong>Approved By</strong>
+                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
+                                <div>Name: __________</div>
+                            </div>
+                            <div class="col-3">
+                                <strong>Confirmed By</strong>
+                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
+                                <div>Name: __________</div>
+                            </div>
+                            <div class="col-3">
+                                <strong>Checked By</strong>
+                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
+                                <div>Name: __________</div>
+                            </div>
+                            <div class="col-3">
+                                <strong>Requested By</strong>
+                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
+                                <div>Name: __________</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="page-break-after:always;"/>
                 </t>
-
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Bill</th>
-                            <th>Vendor</th>
-                            <th class="text-end">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="docs" t-as="doc">
-                            <tr>
-                                <td><span t-field="doc.name"/></td>
-                                <td><span t-field="doc.partner_id.name"/></td>
-                                <td class="text-end">
-                                    <span t-field="doc.amount_total"
-                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
-                                </td>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
-
-            </main>
-
+            </t>
         </t>
     </template>
 </odoo>

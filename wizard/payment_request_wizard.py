@@ -59,9 +59,10 @@ class PaymentRequestWizard(models.TransientModel):
             raise UserError("You can only request payment for posted bills.")
 
         return self.env.ref('account_payment_request.action_payment_request_report').report_action(
-            moves,
+            self.env['account.move'].browse(self.env.context.get('active_ids')),
             data={
                 'payment_date': self.payment_date,
                 'group_request': self.group_request,
+                'active_ids': self.env.context.get('active_ids'), # Add this!
             }
         )
