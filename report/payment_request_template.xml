@@ -4,7 +4,10 @@
             <t t-set="is_grouped" t-value="data.get('group_request', False)"/>
             <t t-set="record_sets" t-value="[docs] if is_grouped else docs"/>
 
-            <t t-foreach="record_sets" t-as="current_set">
+            <t t-foreach="record_sets" t-as="o">
+                <t t-set="lang" t-value="o[0].partner_id.lang or o[0].env.user.lang"/>
+                <t t-set="o" t-value="o.with_context(lang=lang)"/>
+
                 <t t-call="web.external_layout">
                     <div class="page">
                         
@@ -16,11 +19,11 @@
                             <div class="col-6">
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Supplier No</div>
-                                    <div class="col-7">: <span t-field="current_set[0].partner_id.ref"/></div>
+                                    <div class="col-7">: <span t-field="o[0].partner_id.ref"/></div>
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Supplier Name</div>
-                                    <div class="col-7">: <span t-field="current_set[0].partner_id.name"/></div>
+                                    <div class="col-7">: <span t-field="o[0].partner_id.name"/></div>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -28,16 +31,16 @@
                                     <div class="col-5 fw-bold">Vr.No</div>
                                     <div class="col-7">: 
                                         <t t-if="is_grouped"><span>BATCH-REQUEST</span></t>
-                                        <t t-else=""><span t-field="current_set.name"/></t>
+                                        <t t-else=""><span t-field="o.name"/></t>
                                     </div>
                                 </div>
                                 <div class="row mb-1" t-if="data.get('payment_date')">
                                     <div class="col-5 fw-bold">Payment Date</div>
                                     <div class="col-7">: <span t-esc="data.get('payment_date')"/></div>
                                 </div>
-                                <div class="row mb-1" t-if="current_set[0].currency_id">
+                                <div class="row mb-1" t-if="o[0].currency_id">
                                     <div class="col-5 fw-bold">Currency</div>
-                                    <div class="col-7">: <span t-field="current_set[0].currency_id.name"/></div>
+                                    <div class="col-7">: <span t-field="o[0].currency_id.name"/></div>
                                 </div>
                             </div>
                         </div>
@@ -55,7 +58,7 @@
                             </thead>
                             <tbody>
                                 <t t-set="seq" t-value="1"/>
-                                <t t-foreach="current_set.mapped('invoice_line_ids').filtered(lambda l: not l.display_type)" t-as="line">
+                                <t t-foreach="o.mapped('invoice_line_ids').filtered(lambda l: not l.display_type)" t-as="line">
                                     <tr>
                                         <td class="text-center"><span t-esc="seq"/></td>
                                         <td><span t-field="line.name"/></td>
@@ -73,7 +76,7 @@
                                             <span t-field="line.discount"/> %
                                         </td>
                                         <td class="text-end">
-                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": current_set[0].currency_id}'/>
+                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": o[0].currency_id}'/>
                                         </td>
                                     </tr>
                                     <t t-set="seq" t-value="seq + 1"/>
@@ -85,10 +88,10 @@
                                     <td class="text-end">
                                         <strong>
                                             <t t-if="is_grouped">
-                                                <span t-esc="sum(current_set.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": current_set[0].currency_id}'/>
+                                                <span t-esc="sum(o.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": o[0].currency_id}'/>
                                             </t>
                                             <t t-else="">
-                                                <span t-field="current_set.amount_total" t-options='{"widget": "monetary", "display_currency": current_set.currency_id}'/>
+                                                <span t-field="o.amount_total" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                             </t>
                                         </strong>
                                     </td>
@@ -128,50 +131,3 @@
         </t>
     </template>
 </odoo>
-
-<template id="report_payment_request_document">
-    <t t-call="web.html_container">
-        <t t-set="is_grouped" t-value="data.get('group_request', False)"/>
-        <t t-set="record_sets" t-value="[docs] if is_grouped else docs"/>
-
-        <t t-foreach="record_sets" t-as="o">
-            <t t-set="lang" t-value="o[0].partner_id.lang or o[0].env.user.lang"/>
-            <t t-set="o" t-value="o.with_context(lang=lang)"/>
-            
-            <t t-call="web.external_layout">
-                <div class="page">
-                    <div class="text-center mb-4">
-                        <h2 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h2>
-                    </div>
-
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <div class="row">
-                                <div class="col-5 fw-bold">Supplier No</div>
-                                <div class="col-7">: <span t-field="o[0].partner_id.ref"/></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5 fw-bold">Supplier Name</div>
-                                <div class="col-7">: <span t-field="o[0].partner_id.name"/></div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="row">
-                                <div class="col-5 fw-bold">Vr.No</div>
-                                <div class="col-7">: 
-                                    <t t-if="is_grouped"><span>BATCH-REQUEST</span></t>
-                                    <t t-else=""><span t-field="o.name"/></t>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5 fw-bold">Payment Date</div>
-                                <div class="col-7">: <span t-esc="data.get('payment_date')"/></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    </div>
-            </t>
-        </t>
-    </t>
-</template>
