@@ -1,108 +1,177 @@
 <odoo>
     <template id="report_payment_request_document">
         <t t-call="web.html_container">
-            <t t-set="is_grouped" t-value="data.get('group_request')"/>
-            <t t-set="iterations" t-value="[docs] if is_grouped else docs"/>
+            <t t-set="is_grouped" t-value="data.get('group_request', False)"/>
+            <t t-set="record_sets" t-value="[docs] if is_grouped else docs"/>
 
-            <t t-foreach="iterations" t-as="group">
+            <t t-foreach="record_sets" t-as="current_set">
                 <t t-call="web.external_layout">
                     <div class="page">
+                        
                         <div class="text-center mb-4">
-                            <h3><strong>Payment Request Form</strong></h3>
+                            <h2 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h2>
                         </div>
 
-                        <div class="row mb-4">
+                        <div class="row mb-2">
                             <div class="col-6">
-                                <strong>Supplier No :</strong> <span t-field="docs[0].partner_id.ref"/><br/>
-                                <strong>Supplier Name :</strong> <span t-field="docs[0].partner_id.name"/>
+                                <div class="row mb-1">
+                                    <div class="col-5 fw-bold">Supplier No</div>
+                                    <div class="col-7">: <span t-field="current_set[0].partner_id.ref"/></div>
+                                </div>
+                                <div class="row mb-1">
+                                    <div class="col-5 fw-bold">Supplier Name</div>
+                                    <div class="col-7">: <span t-field="current_set[0].partner_id.name"/></div>
+                                </div>
                             </div>
-                            <div class="col-6 text-end">
-                                <strong>Vr.No:</strong> 
-                                <t t-if="is_grouped">MULTI-PR</t>
-                                <t t-else=""><span t-field="group.name"/></t><br/>
-                                
-                                <strong>Vr Date:</strong> 
-                                <span t-esc="data.get('payment_date')" t-options='{"widget": "date"}'/><br/>
-                                
-                                <strong>Currency:</strong> <span t-field="docs[0].currency_id.name"/>
+                            <div class="col-6">
+                                <div class="row mb-1">
+                                    <div class="col-5 fw-bold">Vr.No</div>
+                                    <div class="col-7">: 
+                                        <t t-if="is_grouped"><span>BATCH-REQUEST</span></t>
+                                        <t t-else=""><span t-field="current_set.name"/></t>
+                                    </div>
+                                </div>
+                                <div class="row mb-1" t-if="data.get('payment_date')">
+                                    <div class="col-5 fw-bold">Payment Date</div>
+                                    <div class="col-7">: <span t-esc="data.get('payment_date')"/></div>
+                                </div>
+                                <div class="row mb-1" t-if="current_set[0].currency_id">
+                                    <div class="col-5 fw-bold">Currency</div>
+                                    <div class="col-7">: <span t-field="current_set[0].currency_id.name"/></div>
+                                </div>
                             </div>
                         </div>
 
-                        <table class="table table-sm table-bordered border-dark">
-                            <thead class="text-center align-middle bg-light">
+                        <table class="table table-sm table-bordered border-dark mt-3">
+                            <thead class="bg-light text-center align-middle">
                                 <tr>
                                     <th style="width: 5%;">No</th>
-                                    <th style="width: 35%;">Description</th>
-                                    <th style="width: 15%;">GRN No.</th>
-                                    <th style="width: 15%;">Profit Center</th>
+                                    <th style="width: 30%;">Description</th>
+                                    <th style="width: 15%;">GRN No. / Origin</th>
+                                    <th style="width: 20%;">Cost Center</th>
                                     <th style="width: 15%;">Discount</th>
                                     <th style="width: 15%;">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="i" t-value="1"/>
-                                <t t-set="lines" t-value="group.mapped('invoice_line_ids').filtered(lambda l: l.display_type not in ('line_section', 'line_note'))"/>
-                                <t t-foreach="lines" t-as="line">
+                                <t t-set="seq" t-value="1"/>
+                                <t t-foreach="current_set.mapped('invoice_line_ids').filtered(lambda l: not l.display_type)" t-as="line">
                                     <tr>
-                                        <td class="text-center"><span t-esc="i"/></td>
+                                        <td class="text-center"><span t-esc="seq"/></td>
                                         <td><span t-field="line.name"/></td>
                                         <td class="text-center">
-                                            <span t-field="line.purchase_line_id.order_id.name"/>
+                                            <span t-field="line.move_id.invoice_origin"/>
                                         </td>
                                         <td class="text-center">
-                                            <span t-esc="line.analytic_distribution and list(line.analytic_distribution.keys())[0] or ''"/>
+                                            <t t-if="line.analytic_distribution">
+                                                <t t-foreach="line.analytic_distribution" t-as="account_id">
+                                                    <span t-esc="line.env['account.analytic.account'].browse(int(account_id)).name"/>
+                                                </t>
+                                            </t>
                                         </td>
                                         <td class="text-end">
-                                            <span t-field="line.discount" t-options='{"widget": "monetary", "display_currency": docs[0].currency_id}'/>
+                                            <span t-field="line.discount"/> %
                                         </td>
                                         <td class="text-end">
-                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": docs[0].currency_id}'/>
+                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": current_set[0].currency_id}'/>
                                         </td>
                                     </tr>
-                                    <t t-set="i" t-value="i+1"/>
+                                    <t t-set="seq" t-value="seq + 1"/>
                                 </t>
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="5" class="text-center fw-bold">Total Amount</td>
-                                    <td class="text-end fw-bold">
-                                        <t t-if="is_grouped">
-                                            <span t-esc="sum(docs.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": docs[0].currency_id}'/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-field="group.amount_total" t-options='{"widget": "monetary", "display_currency": group.currency_id}'/>
-                                        </t>
+                                    <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
+                                    <td class="text-end">
+                                        <strong>
+                                            <t t-if="is_grouped">
+                                                <span t-esc="sum(current_set.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": current_set[0].currency_id}'/>
+                                            </t>
+                                            <t t-else="">
+                                                <span t-field="current_set.amount_total" t-options='{"widget": "monetary", "display_currency": current_set.currency_id}'/>
+                                            </t>
+                                        </strong>
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
 
-                        <div class="row mt-5 pt-4 text-center" style="page-break-inside: avoid;">
-                            <div class="col-3">
-                                <strong>Approved By</strong>
-                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
-                                <div>Name: __________</div>
+                        <div class="mt-5">
+                            <div class="row text-center">
+                                <div class="col-3"><strong>Approved By</strong></div>
+                                <div class="col-3"><strong>Confirmed By</strong></div>
+                                <div class="col-3"><strong>Checked By</strong></div>
+                                <div class="col-3"><strong>Requested By</strong></div>
                             </div>
-                            <div class="col-3">
-                                <strong>Confirmed By</strong>
-                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
-                                <div>Name: __________</div>
+
+                            <div class="row mt-4 text-center">
+                                <t t-foreach="[1,2,3,4]" t-as="x">
+                                    <div class="col-3 px-3">
+                                        <div style="border-bottom: 1px dotted black; height: 20px;"></div>
+                                        <div class="small mt-1 text-muted">Sign</div>
+                                    </div>
+                                </t>
                             </div>
-                            <div class="col-3">
-                                <strong>Checked By</strong>
-                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
-                                <div>Name: __________</div>
-                            </div>
-                            <div class="col-3">
-                                <strong>Requested By</strong>
-                                <div class="mt-4 border-top border-dark border-dashed pt-2">Sign: __________</div>
-                                <div>Name: __________</div>
+
+                            <div class="row mt-4 text-center">
+                                <t t-foreach="[1,2,3,4]" t-as="x">
+                                    <div class="col-3 px-3">
+                                        <div style="border-bottom: 1px dotted black; height: 20px;"></div>
+                                        <div class="small mt-1 text-muted">Name</div>
+                                    </div>
+                                </t>
                             </div>
                         </div>
                     </div>
-                    <p style="page-break-after:always;"/>
                 </t>
             </t>
         </t>
     </template>
 </odoo>
+
+<template id="report_payment_request_document">
+    <t t-call="web.html_container">
+        <t t-set="is_grouped" t-value="data.get('group_request', False)"/>
+        <t t-set="record_sets" t-value="[docs] if is_grouped else docs"/>
+
+        <t t-foreach="record_sets" t-as="o">
+            <t t-set="lang" t-value="o[0].partner_id.lang or o[0].env.user.lang"/>
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+            
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="text-center mb-4">
+                        <h2 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h2>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-5 fw-bold">Supplier No</div>
+                                <div class="col-7">: <span t-field="o[0].partner_id.ref"/></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-5 fw-bold">Supplier Name</div>
+                                <div class="col-7">: <span t-field="o[0].partner_id.name"/></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-5 fw-bold">Vr.No</div>
+                                <div class="col-7">: 
+                                    <t t-if="is_grouped"><span>BATCH-REQUEST</span></t>
+                                    <t t-else=""><span t-field="o.name"/></t>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-5 fw-bold">Payment Date</div>
+                                <div class="col-7">: <span t-esc="data.get('payment_date')"/></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div>
+            </t>
+        </t>
+    </t>
+</template>
