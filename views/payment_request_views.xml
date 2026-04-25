@@ -4,19 +4,16 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-
             <!-- Insert after Register Payment button -->
             <xpath expr="//button[@name='action_register_payment']" position="after">
                 <button name="action_open_payment_request"
-                        id="account_invoice_payment_request_btn"
-                        type="object"
-                        class="oe_highlight"
-                        string="Request"
-                        data-hotkey="r"
-                        invisible="state != 'posted'"
-                        groups="account.group_account_invoice"/>
+                    type="object"
+                    string="Request"
+                    class="oe_highlight"
+                    data-hotkey="r"
+                    invisible="state != 'posted' or move_type != 'in_invoice'"
+                    groups="account.group_account_invoice"/>
             </xpath>
-
         </field>
     </record>
 
@@ -25,17 +22,13 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_invoice_tree"/>
         <field name="arch" type="xml">
-
             <xpath expr="//header/button[@name='action_force_register_payment']" position="after">
-
                 <button name="action_open_payment_request"
-                        type="object"
-                        string="Request"
-                        groups="account.group_account_invoice"
-                        invisible="context.get('default_move_type') not in ('out_invoice', 'in_invoice')"/>
-
+                    type="object"
+                    string="Request"
+                    groups="account.group_account_invoice"
+                    invisible="context.get('default_move_type') not in ('in_invoice')"/>
             </xpath>
-
         </field>
     </record>
 </odoo>

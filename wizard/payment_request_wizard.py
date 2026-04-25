@@ -49,6 +49,11 @@ class PaymentRequestWizard(models.TransientModel):
         # Default group_request: True if multiple bills
         res['group_request'] = len(active_ids) > 1
 
+        if len(active_ids) <= 5:
+            res['paper_size'] = 'a5'
+        else:
+            res['paper_size'] = 'a4'
+
         # Optional UX: show total
         if moves:
             res['total_amount'] = sum(moves.mapped('amount_total'))
@@ -68,11 +73,17 @@ class PaymentRequestWizard(models.TransientModel):
         if any(move.state != 'posted' for move in moves):
             raise UserError("You can only request payment for posted bills.")
 
-        return self.env.ref('account_payment_request.action_payment_request_report').report_action(
-            self.env['account.move'].browse(self.env.context.get('active_ids')),
+        report_ref = (
+            'account_payment_request.action_payment_request_report_a5'
+            if self.paper_size == 'a5'
+            else 'account_payment_request.action_payment_request_report'
+        )
+
+        return self.env.ref(report_ref).report_action(
+            self.env['account.move'].browse(active_ids),
             data={
                 'payment_date': self.payment_date,
                 'group_request': self.group_request,
-                'active_ids': self.env.context.get('active_ids'), # Add this!
+                'active_ids': active_ids,
             }
         )
