@@ -2,20 +2,25 @@
     <template id="report_payment_request_document">
         <t t-call="web.html_container">
             <t t-set="is_grouped" t-value="data.get('group_request', False)"/>
+            
+            <t t-set="bundles" t-value="[docs] if is_grouped else docs"/>
 
-            <t t-if="is_grouped">
-                <t t-set="o" t-value="docs[0]"/>
+            <t t-foreach="bundles" t-as="bundle">
+                <t t-set="o" t-value="bundle[0] if is_grouped else bundle"/>
+                <t t-set="lines" t-value="bundle if is_grouped else bundle"/>
+                <t t-set="vr_no" t-value="'BATCH-REQUEST' if is_grouped else o.name"/>
+
                 <t t-call="web.external_layout">
                     <div class="page">
                         <div class="text-center mb-4">
-                            <h2 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h2>
+                            <h3 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h3>
                         </div>
 
                         <div class="row mb-2">
                             <div class="col-6">
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Supplier No</div>
-                                    <div class="col-7">: <span t-field="o.partner_id.ref"/></div>
+                                    <div class="col-7">: <span t-field="o.partner_id.business_partner_code"/></div>
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Supplier Name</div>
@@ -24,12 +29,12 @@
                             </div>
                             <div class="col-6">
                                 <div class="row mb-1">
-                                    <div class="col-5 fw-bold">Vr.No</div>
-                                    <div class="col-7">: <span>BATCH-REQUEST</span></div>
+                                    <div class="col-5 fw-bold">Vr No.</div>
+                                    <div class="col-7">: <span t-esc="vr_no"/></div>
                                 </div>
                                 <div class="row mb-1" t-if="data.get('payment_date')">
-                                    <div class="col-5 fw-bold">Payment Date</div>
-                                    <div class="col-7">: <span t-esc="data.get('payment_date')"/></div>
+                                    <div class="col-5 fw-bold">Request Date</div>
+                                    <div class="col-7">: <span t-esc="data.get('payment_date')" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></div>
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Currency</div>
@@ -38,44 +43,47 @@
                             </div>
                         </div>
 
-                        <table class="table table-sm table-borderless mt-3" style="page-break-inside: avoid;">
-                            <thead style="border-bottom: 2px solid black;">
+                        <table class="table table-borderless" style="page-break-inside: avoid;">
+                            <t t-set="otherCurrency" t-value="any(bill.currency_id != bill.company_id.currency_id for bill in lines)"/>
+                            <thead>
                                 <tr>
-                                    <th class="text-start" style="width: 5%;">No</th>
-                                    <th class="text-center" style="width: 15%;">Invoice Date</th>
-                                    <th class="text-center" style="width: 20%;">Invoice Number</th>
-                                    <th class="text-start" style="width: 30%;">Description</th>
-                                    <th class="text-center" style="width: 15%;">Vendor Ref</th>
-                                    <th class="text-end" style="width: 15%;">Amount</th>
+                                    <th>No</th>
+                                    <th>Invoice Date</th>
+                                    <th>Invoice Number</th>
+                                    <th>Reference</th>
+                                    <th t-if="otherCurrency" class="text-end">Amount In Currency</th>
+                                    <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="row_num" t-value="0"/>
-                                <t t-foreach="docs" t-as="bill">
-                                    <t t-set="row_num" t-value="row_num + 1"/>
-                                    <tr style="border-bottom: 1px solid #dee2e6;">
-                                        <td class="text-start"><span t-esc="row_num"/></td>
-                                        <td class="text-center"><span t-field="bill.invoice_date"/></td>
-                                        <td class="text-center"><span t-field="bill.name"/></td>
-                                        <td class="text-start"><span t-field="bill.invoice_origin"/></td>
-                                        <td class="text-center"><span t-field="bill.ref"/></td>
+                                <t t-foreach="lines" t-as="bill">
+                                    <tr>
+                                        <td><span t-esc="bill_index + 1"/></td>
+                                        <td><span t-field="bill.invoice_date" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></td>
+                                        <td><span t-field="bill.name"/></td>
+                                        <td><span t-field="bill.vendor_ref"/></td>
+                                        <td t-if="otherCurrency" class="text-end">
+                                            <span t-if="bill.currency_id != bill.company_id.currency_id" t-field="bill.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>
+                                        </td>
                                         <td class="text-end">
-                                            <span t-field="bill.amount_total" t-options='{"widget": "monetary", "display_currency": bill.currency_id}'/>
+                                            <span t-esc="bill.amount_total * (-1 if bill.move_type in ('out_refund','in_refund') else 1)" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>
+                                            <!--<span t-field="bill.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>-->
                                         </td>
                                     </tr>
                                 </t>
-                            </tbody>
-                            <tfoot>
-                                <tr style="border-top: 1.5px solid black;">
-                                    <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
+                                <tr>
+                                    <td/>
+                                    <td colspan="3"><strong>Total Amount</strong></td>
+                                    <td t-if="otherCurrency"/>
                                     <td class="text-end">
                                         <strong>
-                                            <span t-esc="'{:,.2f}'.format(sum(docs.mapped('amount_total')))"/>
-                                            <span t-field="docs[0].currency_id.name"/>
+                                            <!--<t t-set="total_sum" t-value="sum(lines.mapped('amount_total'))"/>-->
+                                            <t t-set="total_sum" t-value="sum(     (l.amount_total * (-1 if l.move_type in ('out_refund','in_refund') else 1))     for l in lines )"/>
+                                            <span t-out="total_sum" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                         </strong>
                                     </td>
                                 </tr>
-                            </tfoot>
+                            </tbody>
                         </table>
 
                         <div class="mt-5">
@@ -86,136 +94,17 @@
                                 <div class="col-3"><strong>Requested By</strong></div>
                             </div>
                             <div class="row mt-4 text-center">
-                                <t t-foreach="[1,2,3,4]" t-as="x">
+                                <t t-foreach="range(4)" t-as="x">
                                     <div class="col-3 px-3">
-                                        <div style="border-bottom: 1px dotted black; height: 20px;"></div>
+                                        <div style="border-bottom: 1px dotted black; height: 20px;"/>
                                         <div class="small mt-1 text-muted">Sign</div>
-                                    </div>
-                                </t>
-                            </div>
-                            <div class="row mt-4 text-center">
-                                <t t-foreach="[1,2,3,4]" t-as="x">
-                                    <div class="col-3 px-3">
-                                        <div style="border-bottom: 1px dotted black; height: 20px;"></div>
+                                        <div style="border-bottom: 1px dotted black; height: 20px; margin-top: 20px;"/>
                                         <div class="small mt-1 text-muted">Name</div>
                                     </div>
                                 </t>
                             </div>
                         </div>
                     </div>
-                </t>
-            </t>
-
-            <t t-else="">
-                <t t-foreach="docs" t-as="o">
-                    <t t-call="web.external_layout">
-                        <div class="page">
-                            <div class="text-center mb-4">
-                                <h2 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h2>
-                            </div>
-
-                            <div class="row mb-2">
-                                <div class="col-6">
-                                    <div class="row mb-1">
-                                        <div class="col-5 fw-bold">Supplier No</div>
-                                        <div class="col-7">: <span t-field="o.partner_id.ref"/></div>
-                                    </div>
-                                    <div class="row mb-1">
-                                        <div class="col-5 fw-bold">Supplier Name</div>
-                                        <div class="col-7">: <span t-field="o.partner_id.name"/></div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="row mb-1">
-                                        <div class="col-5 fw-bold">Vr.No</div>
-                                        <div class="col-7">: <span t-field="o.name"/></div>
-                                    </div>
-                                    <div class="row mb-1" t-if="data.get('payment_date')">
-                                        <div class="col-5 fw-bold">Payment Date</div>
-                                        <div class="col-7">: <span t-esc="data.get('payment_date')"/></div>
-                                    </div>
-                                    <div class="row mb-1">
-                                        <div class="col-5 fw-bold">Currency</div>
-                                        <div class="col-7">: <span t-field="o.currency_id.name"/></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <table class="table table-sm table-borderless mt-3" style="page-break-inside: avoid;">
-                                <thead style="border-bottom: 2px solid black;">
-                                    <tr>
-                                        <th class="text-start" style="width: 5%;">No</th>
-                                        <th class="text-center" style="width: 15%;">Invoice Date</th>
-                                        <th class="text-center" style="width: 15%;">Invoice Number</th>
-                                        <th class="text-start" style="width: 35%;">Description</th>
-                                        <th class="text-center" style="width: 15%;">Vendor Ref</th>
-                                        <th class="text-end" style="width: 15%;">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <t t-set="i" t-value="1"/>
-                                    <t t-foreach="o.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
-                                        <tr style="border-bottom: 1px solid #dee2e6;">
-                                            <td class="text-start">
-                                                <span t-esc="i"/>
-                                            </td>
-                                            <td class="text-center">
-                                                <span t-field="o.invoice_date"/>
-                                            </td>
-                                            <td class="text-center">
-                                                <span t-field="o.name"/>
-                                            </td>
-                                            <td class="text-start">
-                                                <span t-field="line.name"/>
-                                            </td>
-                                            <td class="text-center">
-                                                <span t-field="o.ref"/>
-                                            </td>
-                                            <td class="text-end">
-                                                <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                            </td>
-                                        </tr>
-                                        <t t-set="i" t-value="i + 1"/>
-                                    </t>
-                                </tbody>
-                                <tfoot>
-                                    <tr style="border-top: 1.5px solid black;">
-                                        <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
-                                        <td class="text-end">
-                                            <strong>
-                                                <span t-field="o.amount_total" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-
-                            <div class="mt-5">
-                                <div class="row text-center">
-                                    <div class="col-3"><strong>Approved By</strong></div>
-                                    <div class="col-3"><strong>Confirmed By</strong></div>
-                                    <div class="col-3"><strong>Checked By</strong></div>
-                                    <div class="col-3"><strong>Requested By</strong></div>
-                                </div>
-                                <div class="row mt-4 text-center">
-                                    <t t-foreach="[1,2,3,4]" t-as="x">
-                                        <div class="col-3 px-3">
-                                            <div style="border-bottom: 1px dotted black; height: 20px;"></div>
-                                            <div class="small mt-1 text-muted">Sign</div>
-                                        </div>
-                                    </t>
-                                </div>
-                                <div class="row mt-4 text-center">
-                                    <t t-foreach="[1,2,3,4]" t-as="x">
-                                        <div class="col-3 px-3">
-                                            <div style="border-bottom: 1px dotted black; height: 20px;"></div>
-                                            <div class="small mt-1 text-muted">Name</div>
-                                        </div>
-                                    </t>
-                                </div>
-                            </div>
-                        </div>
-                    </t>
                 </t>
             </t>
         </t>

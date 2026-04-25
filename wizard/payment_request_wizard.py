@@ -7,13 +7,23 @@ class PaymentRequestWizard(models.TransientModel):
     _description = 'Payment Request Wizard'
 
     payment_date = fields.Date(
-        string="Payment Date",
+        string="Request Date",
         required=True,
         default=fields.Date.context_today
     )
 
     group_request = fields.Boolean(
         string="Group Request"
+    )
+
+    paper_size = fields.Selection(
+        [
+            ('a4', 'A4'),
+            ('a5', 'A5'),
+        ],
+        string="Paper Size",
+        default='a4',
+        required=True
     )
 
     # Optional: show total amount (nice UX)
