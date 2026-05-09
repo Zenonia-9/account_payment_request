@@ -37,7 +37,7 @@
                 <!-- Footer like Odoo -->
                 <footer>
                     <button name="action_confirm"
-                            string="Confirm Request"
+                            string="Print Request"
                             type="object"
                             class="oe_highlight"
                             data-hotkey="q"/>

@@ -10,7 +10,7 @@
                 <t t-set="lines" t-value="bundle if is_grouped else bundle"/>
                 <t t-set="vr_no" t-value="'BATCH-REQUEST' if is_grouped else o.name"/>
 
-                <t t-call="web.external_layout">
+                <t t-call="account_payment_request.payment_request_header_footer_template">
                     <style>
                         @page {
                             size: A4 portrait;
@@ -53,7 +53,7 @@
                                     <div class="col-7">: <span t-esc="vr_no"/></div>
                                 </div>
                                 <div class="row mb-1" t-if="data.get('payment_date')">
-                                    <div class="col-5 fw-bold">Request Date</div>
+                                    <div class="col-5 fw-bold">Vr Date</div>
                                     <div class="col-7">: <span t-esc="data.get('payment_date')" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></div>
                                 </div>
                                 <div class="row mb-1">
@@ -141,7 +141,7 @@
                 <t t-set="lines" t-value="bundle if is_grouped else bundle"/>
                 <t t-set="vr_no" t-value="'BATCH-REQUEST' if is_grouped else o.name"/>
 
-                <t t-call="web.external_layout">
+                <t t-call="account_payment_request.payment_request_header_footer_template">
                     <style>
                         @page {
                             size: A5 landscape;
