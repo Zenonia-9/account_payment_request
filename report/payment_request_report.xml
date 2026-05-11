@@ -6,16 +6,20 @@
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">account_payment_request.report_payment_request_document</field>
         <field name="report_file">account_payment_request.report_payment_request_document</field>
+        <field name="paperformat_id" ref="account_payment_request.paperformat_payment_request_a4"/>
+        <field name="print_report_name">'PR - %s' % (object.name or '')</field>
         <field name="binding_model_id" eval="False"/>
     </record>
 
     <!-- A5 Landscape Report Action -->
     <record id="action_payment_request_report_a5" model="ir.actions.report">
-        <field name="name">Payment Request (A5)</field>
+        <field name="name">Payment Request A5</field>
         <field name="model">account.move</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">account_payment_request.payment_request_a5</field>
         <field name="report_file">account_payment_request.payment_request_a5</field>
+        <field name="paperformat_id" ref="account_payment_request.paperformat_payment_request_a5"/>
+        <field name="print_report_name">'PR - %s' % (object.name or '')</field>
         <field name="binding_model_id" eval="False"/>
     </record>
 </odoo>

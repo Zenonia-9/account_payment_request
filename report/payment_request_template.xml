@@ -10,14 +10,23 @@
                 <t t-set="lines" t-value="bundle if is_grouped else bundle"/>
                 <t t-set="vr_no" t-value="'BATCH-REQUEST' if is_grouped else o.name"/>
 
-                <t t-call="account_payment_request.payment_request_header_footer_template">
+                <t t-call="account_payment_request.payment_request_layout_a4">
                     <style>
-                        @page {
-                            size: A4 portrait;
-                        }
-
                         .page {
                             font-size: 14px;
+                        }
+
+                        .payment-request-info .fw-bold {
+                            white-space: nowrap;
+                        }
+
+                        .payment-request-info .col-7 {
+                            overflow-wrap: anywhere;
+                        }
+
+                        .compact-table {
+                            table-layout: fixed;
+                            width: 100%;
                         }
 
                         .compact-table td,
@@ -25,6 +34,11 @@
                             line-height: 1.5 !important;
                             vertical-align: middle;
                             padding: 4px 5px !important;
+                            overflow-wrap: anywhere;
+                        }
+
+                        .compact-table .amount-cell {
+                            white-space: nowrap;
                         }
 
                         .compact-table tr {
@@ -36,7 +50,7 @@
                             <h3 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h3>
                         </div>
 
-                        <div class="row mb-2">
+                        <div class="row mb-2 payment-request-info">
                             <div class="col-6">
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Supplier No</div>
@@ -64,38 +78,53 @@
                         </div>
 
                         <table class="table table-borderless compact-table" style="page-break-inside: avoid;">
-                            <t t-set="otherCurrency" t-value="any(bill.currency_id != bill.company_id.currency_id for bill in lines)"/>
                             <thead>
                                 <tr>
-                                    <th>No</th>
-                                    <th>Invoice Date</th>
-                                    <th>Invoice Number</th>
+                                    <th style="width: 10mm;">No</th>
+                                    <th style="width: 25mm;">Invoice Date</th>
+                                    <th style="width: 38mm;">Invoice Number</th>
                                     <th>Reference</th>
-                                    <th t-if="otherCurrency" class="text-end">Amount In Currency</th>
+                                    <th style="width: 28mm;">PC/CC</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <t t-set="line_no" t-value="0"/>
                                 <t t-foreach="lines" t-as="bill">
+                                    <t t-set="line_no" t-value="line_no + 1"/>
                                     <tr>
-                                        <td><span t-esc="bill_index + 1"/></td>
+                                        <td><span t-esc="line_no"/></td>
                                         <td><span t-field="bill.invoice_date" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></td>
                                         <td><span t-field="bill.name"/></td>
-                                        <td><span t-field="bill.vendor_ref"/></td>
-                                        <td t-if="otherCurrency" class="text-end">
-                                            <span t-if="bill.currency_id != bill.company_id.currency_id" t-field="bill.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>
+                                        <td>
+                                            <span t-if="bill.vendor_ref" t-field="bill.vendor_ref"/>
+                                            <span t-elif="bill.ref" t-field="bill.ref"/>
                                         </td>
-                                        <td class="text-end">
+                                        <td>
+                                            <t t-set="analytic_names" t-value="[]"/>
+                                            <t t-foreach="bill.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note') and l.analytic_distribution)" t-as="line">
+                                                <t t-foreach="line.analytic_distribution.keys()" t-as="analytic_key">
+                                                    <t t-foreach="str(analytic_key).split(',')" t-as="analytic_id">
+                                                        <t t-if="analytic_id">
+                                                            <t t-set="analytic_account" t-value="bill.env['account.analytic.account'].browse(int(analytic_id))"/>
+                                                            <t t-if="analytic_account.exists() and analytic_account.name not in analytic_names">
+                                                                <t t-set="analytic_names" t-value="analytic_names + [analytic_account.name]"/>
+                                                            </t>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </t>
+                                            <span t-esc="', '.join(analytic_names)"/>
+                                        </td>
+                                        <td class="text-end amount-cell">
                                             <span t-esc="bill.amount_total * (-1 if bill.move_type in ('out_refund','in_refund') else 1)" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>
                                             <!--<span t-field="bill.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>-->
                                         </td>
                                     </tr>
                                 </t>
                                 <tr>
-                                    <td/>
-                                    <td colspan="3"><strong>Total Amount</strong></td>
-                                    <td t-if="otherCurrency"/>
-                                    <td class="text-end">
+                                    <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
+                                    <td class="text-end amount-cell">
                                         <strong>
                                             <!--<t t-set="total_sum" t-value="sum(lines.mapped('amount_total'))"/>-->
                                             <t t-set="total_sum" t-value="sum(     (l.amount_total * (-1 if l.move_type in ('out_refund','in_refund') else 1))     for l in lines )"/>
@@ -141,33 +170,47 @@
                 <t t-set="lines" t-value="bundle if is_grouped else bundle"/>
                 <t t-set="vr_no" t-value="'BATCH-REQUEST' if is_grouped else o.name"/>
 
-                <t t-call="account_payment_request.payment_request_header_footer_template">
+                <t t-call="account_payment_request.payment_request_layout_a5">
                     <style>
-                        @page {
-                            size: A5 landscape;
+                        .page {
+                            font-size: 11px;
                         }
 
-                        .page {
-                            font-size: 14px;
+                        .payment-request-info .fw-bold {
+                            white-space: nowrap;
+                        }
+
+                        .payment-request-info .col-7 {
+                            overflow-wrap: anywhere;
+                        }
+
+                        .compact-table {
+                            table-layout: fixed;
+                            width: 100%;
                         }
 
                         .compact-table td,
                         .compact-table th {
-                            line-height: 1.5 !important;
+                            line-height: 1.25 !important;
                             vertical-align: middle;
-                            padding: 2px 5px !important;
+                            padding: 2px 3px !important;
+                            overflow-wrap: anywhere;
+                        }
+
+                        .compact-table .amount-cell {
+                            white-space: nowrap;
                         }
 
                         .compact-table tr {
                             height: auto !important;
                         }
                     </style>
-                    <div class="page" style="font-size: 13px">
+                    <div class="page">
                         <div class="text-center mb-2">
                             <h4 style="text-transform: uppercase; font-weight: bold;">Payment Request Form</h4>
                         </div>
 
-                        <div class="row mb-2">
+                        <div class="row mb-2 payment-request-info">
                             <div class="col-6">
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Supplier No</div>
@@ -195,38 +238,53 @@
                         </div>
 
                         <table class="table table-borderless compact-table" style="page-break-inside: avoid;">
-                            <t t-set="otherCurrency" t-value="any(bill.currency_id != bill.company_id.currency_id for bill in lines)"/>
                             <thead>
                                 <tr>
-                                    <th>No</th>
-                                    <th>Invoice Date</th>
-                                    <th>Invoice Number</th>
+                                    <th style="width: 8mm;">No</th>
+                                    <th style="width: 20mm;">Invoice Date</th>
+                                    <th style="width: 33mm;">Invoice Number</th>
                                     <th>Reference</th>
-                                    <th t-if="otherCurrency" class="text-end">Amount In Currency</th>
+                                    <th style="width: 25mm;">PC/CC</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <t t-set="line_no" t-value="0"/>
                                 <t t-foreach="lines" t-as="bill">
+                                    <t t-set="line_no" t-value="line_no + 1"/>
                                     <tr>
-                                        <td><span t-esc="bill_index + 1"/></td>
+                                        <td><span t-esc="line_no"/></td>
                                         <td><span t-field="bill.invoice_date" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></td>
                                         <td><span t-field="bill.name"/></td>
-                                        <td><span t-field="bill.vendor_ref"/></td>
-                                        <td t-if="otherCurrency" class="text-end">
-                                            <span t-if="bill.currency_id != bill.company_id.currency_id" t-field="bill.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>
+                                        <td>
+                                            <span t-if="bill.vendor_ref" t-field="bill.vendor_ref"/>
+                                            <span t-elif="bill.ref" t-field="bill.ref"/>
                                         </td>
-                                        <td class="text-end">
+                                        <td>
+                                            <t t-set="analytic_names" t-value="[]"/>
+                                            <t t-foreach="bill.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note') and l.analytic_distribution)" t-as="line">
+                                                <t t-foreach="line.analytic_distribution.keys()" t-as="analytic_key">
+                                                    <t t-foreach="str(analytic_key).split(',')" t-as="analytic_id">
+                                                        <t t-if="analytic_id">
+                                                            <t t-set="analytic_account" t-value="bill.env['account.analytic.account'].browse(int(analytic_id))"/>
+                                                            <t t-if="analytic_account.exists() and analytic_account.name not in analytic_names">
+                                                                <t t-set="analytic_names" t-value="analytic_names + [analytic_account.name]"/>
+                                                            </t>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </t>
+                                            <span t-esc="', '.join(analytic_names)"/>
+                                        </td>
+                                        <td class="text-end amount-cell">
                                             <span t-esc="bill.amount_total * (-1 if bill.move_type in ('out_refund','in_refund') else 1)" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>
                                             <!--<span t-field="bill.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: bill.currency_id}"/>-->
                                         </td>
                                     </tr>
                                 </t>
                                 <tr>
-                                    <td/>
-                                    <td colspan="3"><strong>Total Amount</strong></td>
-                                    <td t-if="otherCurrency"/>
-                                    <td class="text-end">
+                                    <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
+                                    <td class="text-end amount-cell">
                                         <strong>
                                             <!--<t t-set="total_sum" t-value="sum(lines.mapped('amount_total'))"/>-->
                                             <t t-set="total_sum" t-value="sum(     (l.amount_total * (-1 if l.move_type in ('out_refund','in_refund') else 1))     for l in lines )"/>

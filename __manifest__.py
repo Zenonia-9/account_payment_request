@@ -18,15 +18,17 @@
 
     'depends': [
         'account',
+        'web',
     ],
 
     'data': [
         'security/ir.model.access.csv',
         'views/payment_request_views.xml',
         'wizard/payment_request_wizard_views.xml',
-        'report/payment_request_report.xml',
-        'report/payment_request_header_footer_template.xml',
+        'report/paperformat.xml',
+        'report/payment_request_layout.xml',
         'report/payment_request_template.xml',
+        'report/payment_request_report.xml',
     ],
 
     'installable': True,
