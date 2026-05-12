@@ -78,13 +78,15 @@
                         </div>
 
                         <table class="table table-borderless compact-table" style="page-break-inside: avoid;">
+                            <t t-set="show_pc_cc" t-value="any(bill.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note') and l.analytic_distribution) for bill in lines)"/>
+
                             <thead>
                                 <tr>
                                     <th style="width: 10mm;">No</th>
                                     <th style="width: 25mm;">Invoice Date</th>
-                                    <th style="width: 40mm;">Invoice Number</th>
+                                    <th>Invoice Number</th>
                                     <th>Reference</th>
-                                    <th style="width: 25mm;">PC/CC</th>
+                                    <th t-if="show_pc_cc" style="width: 25mm;">PC/CC</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
@@ -100,7 +102,7 @@
                                             <span t-if="bill.vendor_ref" t-field="bill.vendor_ref"/>
                                             <span t-elif="bill.ref" t-field="bill.ref"/>
                                         </td>
-                                        <td>
+                                        <td t-if="show_pc_cc">
                                             <t t-set="analytic_names" t-value="[]"/>
                                             <t t-foreach="bill.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note') and l.analytic_distribution)" t-as="line">
                                                 <t t-foreach="line.analytic_distribution.keys()" t-as="analytic_key">
@@ -123,7 +125,7 @@
                                     </tr>
                                 </t>
                                 <tr>
-                                    <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
+                                    <td t-att-colspan="5 if show_pc_cc else 4" class="text-end"><strong>Total Amount</strong></td>
                                     <td class="text-end amount-cell">
                                         <strong>
                                             <!--<t t-set="total_sum" t-value="sum(lines.mapped('amount_total'))"/>-->
@@ -238,13 +240,15 @@
                         </div>
 
                         <table class="table table-borderless compact-table" style="page-break-inside: avoid;">
+                            <t t-set="show_pc_cc" t-value="any(bill.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note') and l.analytic_distribution) for bill in lines)"/>
+
                             <thead>
                                 <tr>
                                     <th style="width: 8mm;">No</th>
                                     <th style="width: 20mm;">Invoice Date</th>
-                                    <th style="width: 35mm;">Invoice Number</th>
+                                    <th>Invoice Number</th>
                                     <th>Reference</th>
-                                    <th style="width: 25mm;">PC/CC</th>
+                                    <th t-if="show_pc_cc" style="width: 25mm;">PC/CC</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
@@ -260,7 +264,7 @@
                                             <span t-if="bill.vendor_ref" t-field="bill.vendor_ref"/>
                                             <span t-elif="bill.ref" t-field="bill.ref"/>
                                         </td>
-                                        <td>
+                                        <td t-if="show_pc_cc">
                                             <t t-set="analytic_names" t-value="[]"/>
                                             <t t-foreach="bill.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note') and l.analytic_distribution)" t-as="line">
                                                 <t t-foreach="line.analytic_distribution.keys()" t-as="analytic_key">
@@ -283,7 +287,7 @@
                                     </tr>
                                 </t>
                                 <tr>
-                                    <td colspan="5" class="text-end"><strong>Total Amount</strong></td>
+                                    <td t-att-colspan="5 if show_pc_cc else 4" class="text-end"><strong>Total Amount</strong></td>
                                     <td class="text-end amount-cell">
                                         <strong>
                                             <!--<t t-set="total_sum" t-value="sum(lines.mapped('amount_total'))"/>-->
