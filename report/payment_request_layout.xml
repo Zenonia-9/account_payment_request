@@ -99,7 +99,7 @@
         <div t-attf-class="footer o_company_#{company.id}_layout">
             <div class="o_footer_content">
                 <div class="payment-request-footer-note text-center text-muted">
-                    V_FA_CH_014 / Issue No: 02 / Issue Date: 15-08-2014 / Effective Date: 20-08-2014
+                    
                 </div>
             </div>
         </div>
@@ -204,7 +204,7 @@
         <div t-attf-class="footer o_company_#{company.id}_layout">
             <div class="o_footer_content">
                 <div class="payment-request-footer-note text-center text-muted">
-                    V_FA_CH_014 / Issue No: 02 / Issue Date: 15-08-2014 / Effective Date: 20-08-2014
+                    
                 </div>
             </div>
         </div>
