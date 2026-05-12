@@ -82,9 +82,9 @@
                                 <tr>
                                     <th style="width: 10mm;">No</th>
                                     <th style="width: 25mm;">Invoice Date</th>
-                                    <th style="width: 38mm;">Invoice Number</th>
+                                    <th style="width: 40mm;">Invoice Number</th>
                                     <th>Reference</th>
-                                    <th style="width: 28mm;">PC/CC</th>
+                                    <th style="width: 25mm;">PC/CC</th>
                                     <th class="text-end">Amount</th>
                                 </tr>
                             </thead>
@@ -173,7 +173,7 @@
                 <t t-call="account_payment_request.payment_request_layout_a5">
                     <style>
                         .page {
-                            font-size: 11px;
+                            font-size: 12px;
                         }
 
                         .payment-request-info .fw-bold {
@@ -242,7 +242,7 @@
                                 <tr>
                                     <th style="width: 8mm;">No</th>
                                     <th style="width: 20mm;">Invoice Date</th>
-                                    <th style="width: 33mm;">Invoice Number</th>
+                                    <th style="width: 35mm;">Invoice Number</th>
                                     <th>Reference</th>
                                     <th style="width: 25mm;">PC/CC</th>
                                     <th class="text-end">Amount</th>

@@ -209,10 +209,4 @@
             </div>
         </div>
     </template>
-
-    <template id="payment_request_header_footer_template">
-        <t t-call="account_payment_request.payment_request_layout_a4">
-            <t t-out="0"/>
-        </t>
-    </template>
 </odoo>
