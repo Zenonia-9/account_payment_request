@@ -1,6 +1,6 @@
 {
     'name': 'Account Payment Request',
-    'version': '1.0.1',
+    'version': '1.0.5',
     'summary': 'Create and print payment request from vendor bills',
     'description': """
         This module adds a Payment Request button on Vendor Bills.
