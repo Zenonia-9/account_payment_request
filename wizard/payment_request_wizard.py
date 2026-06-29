@@ -83,7 +83,15 @@ class PaymentRequestWizard(models.TransientModel):
             self.env['account.move'].browse(active_ids),
             data={
                 'payment_date': self.payment_date,
+                'payment_date_display': self._format_report_date(self.payment_date),
                 'group_request': self.group_request,
                 'active_ids': active_ids,
             }
         )
+
+    @api.model
+    def _format_report_date(self, date_value):
+        date_value = fields.Date.to_date(date_value)
+        if not date_value:
+            return ""
+        return date_value.strftime("%d-%b-%Y")

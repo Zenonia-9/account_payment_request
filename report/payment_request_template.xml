@@ -68,7 +68,7 @@
                                 </div>
                                 <div class="row mb-1" t-if="data.get('payment_date')">
                                     <div class="col-5 fw-bold">Vr Date</div>
-                                    <div class="col-7">: <span t-esc="data.get('payment_date')" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></div>
+                                    <div class="col-7">: <span t-esc="data.get('payment_date_display')"/></div>
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Currency</div>
@@ -96,7 +96,7 @@
                                     <t t-set="line_no" t-value="line_no + 1"/>
                                     <tr>
                                         <td><span t-esc="line_no"/></td>
-                                        <td><span t-field="bill.invoice_date" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></td>
+                                        <td><span t-esc="bill.invoice_date and bill.invoice_date.strftime('%d-%b-%Y') or ''"/></td>
                                         <td><span t-field="bill.name"/></td>
                                         <td>
                                             <span t-if="bill.vendor_ref" t-field="bill.vendor_ref"/>
@@ -147,9 +147,9 @@
                             <div class="row mt-4 text-center">
                                 <t t-foreach="range(4)" t-as="x">
                                     <div class="col-3 px-3">
-                                        <div style="border-bottom: 1px dotted black; height: 20px;"/>
+                                        <div style="border-bottom: 1px dotted black; height: 26px;"/>
                                         <div class="small mt-1 text-muted">Sign</div>
-                                        <div style="border-bottom: 1px dotted black; height: 20px; margin-top: 20px;"/>
+                                        <div style="border-bottom: 1px dotted black; height: 26px; margin-top: 22px;"/>
                                         <div class="small mt-1 text-muted">Name</div>
                                     </div>
                                 </t>
@@ -230,7 +230,7 @@
                                 </div>
                                 <div class="row mb-1" t-if="data.get('payment_date')">
                                     <div class="col-5 fw-bold">Request Date</div>
-                                    <div class="col-7">: <span t-esc="data.get('payment_date')" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></div>
+                                    <div class="col-7">: <span t-esc="data.get('payment_date_display')"/></div>
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-5 fw-bold">Currency</div>
@@ -258,7 +258,7 @@
                                     <t t-set="line_no" t-value="line_no + 1"/>
                                     <tr>
                                         <td><span t-esc="line_no"/></td>
-                                        <td><span t-field="bill.invoice_date" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot;dd/MM/yyyy&quot;}"/></td>
+                                        <td><span t-esc="bill.invoice_date and bill.invoice_date.strftime('%d-%b-%Y') or ''"/></td>
                                         <td><span t-field="bill.name"/></td>
                                         <td>
                                             <span t-if="bill.vendor_ref" t-field="bill.vendor_ref"/>
@@ -309,8 +309,8 @@
                             <div class="row mt-3 text-center">
                                 <t t-foreach="range(4)" t-as="x">
                                     <div class="col-3 px-3">
-                                        <div style="border-bottom: 1px dotted black; height: 15px;"/>
-                                        <div style="border-bottom: 1px dotted black; height: 15px; margin-top: 15px;"/>
+                                        <div style="border-bottom: 1px dotted black; height: 22px;"/>
+                                        <div style="border-bottom: 1px dotted black; height: 22px; margin-top: 18px;"/>
                                     </div>
                                 </t>
                             </div>
